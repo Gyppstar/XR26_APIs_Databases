@@ -29,7 +29,7 @@ namespace WeatherApp.UI
             // Initialize UI state
             SetStatusText("Enter a city name and click Get Weather");
         }
-        
+
         /// TODO: Students will implement this method
         private async void OnGetWeatherClicked()
         {
@@ -51,9 +51,18 @@ namespace WeatherApp.UI
             try
             {
                 // TODO: Call API client to get weather data
-              
-                
+                WeatherData data = await apiClient.GetWeatherDataAsync(cityName);
+
                 // TODO: Handle the response
+                if (data != null && data.IsValid)
+                {
+                    DisplayWeatherData(data);
+                    SetStatusText("Weather data loaded successfully!");
+                }
+                else
+                {
+                    SetStatusText("Weather data not found. Check city name.");
+                }
             }
             catch (System.Exception ex)
             {
@@ -84,8 +93,11 @@ namespace WeatherApp.UI
             // TODO: Add more weather details
             if (weatherData.Main != null)
             {
-                displayText += "";
-                displayText += "";
+                displayText += $"City: {weatherData.CityName}\n";
+                displayText += $"Temperature: {weatherData.TemperatureInCelsius:F1}°C (Feels like: {weatherData.Main.FeelsLike - 273.15f:F1}°C)\n";
+                displayText += $"Description: {weatherData.PrimaryDescription}\n";
+                displayText += $"Humidity: {weatherData.Main.Humidity}%\n";
+                displayText += $"Pressure: {weatherData.Main.Pressure} hPa\n";
             }
             
             weatherDisplayText.text = displayText;

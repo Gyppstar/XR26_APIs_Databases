@@ -16,7 +16,7 @@ namespace WeatherApp.Services
     {
         [Header("API Configuration")]
         [SerializeField] private string baseUrl = "http://api.openweathermap.org/data/2.5/weather";
-        
+
         /// <summary>
         /// Fetch weather data for a specific city using async/await pattern
         /// TODO: Students will implement this method
@@ -31,49 +31,49 @@ namespace WeatherApp.Services
                 Debug.LogError("City name cannot be empty");
                 return null;
             }
-            
+
             // Check if API key is configured
             if (!ApiConfig.IsApiKeyConfigured())
             {
                 Debug.LogError("API key not configured. Please set up your config.json file in StreamingAssets folder.");
                 return null;
             }
-            
+
             // TODO: Build the complete URL with city and API key
-            string url = $"";
-            
+            string apiKey = ApiConfig.OpenWeatherMapApiKey;
+            string url = $"{baseUrl}?q={city}&appid={apiKey}";
+
+
             // TODO: Create UnityWebRequest and use modern async pattern
             using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
                 // TODO: Use async/await, send the request and wait for response
-                
+                var operation = request.SendWebRequest();
+                while (!operation.isDone)
+                    await Task.Yield();
                 // TODO: Implement proper error handling for different result types
                 // Check request.result for Success, ConnectionError, ProtocolError, DataProcessingError
-                
-                // TODO: Parse JSON response using Newtonsoft.Json
-                
-                // TODO: Return the parsed WeatherData object
-                
-                return null; // Placeholder - students will replace this
-            }
-        }
-        
-        /// <summary>
-        /// Example usage method - students can use this as reference
-        /// </summary>
-        private async void Start()
-        {
-            // Example: Get weather for London
-            var weatherData = await GetWeatherDataAsync("London");
-            
-            if (weatherData != null && weatherData.IsValid)
-            {
-                Debug.Log($"Weather in {weatherData.CityName}: {weatherData.TemperatureInCelsius:F1}°C");
-                Debug.Log($"Description: {weatherData.PrimaryDescription}");
-            }
-            else
-            {
-                Debug.LogError("Failed to get weather data");
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"API request failed: {request.error}");
+                    return null;
+                }
+
+                try
+                {
+                    // TODO: Parse JSON response using Newtonsoft.Json
+                    string json = request.downloadHandler.text;
+                    WeatherData weatherData = JsonConvert.DeserializeObject<WeatherData>(json);
+                    // TODO: Return the parsed WeatherData object
+                    return weatherData;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"JSON parsing error: {ex.Message}");
+                    return null;
+
+
+                } // Placeholder - students will replace this
             }
         }
     }
